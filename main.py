@@ -1,199 +1,78 @@
-from typing import List, Tuple, Dict
+#!/usr/bin/env python3
+"""
+DAG 切片点选择工具 - 完整边评分输出版
+"""
+
 import argparse
 import os
-from pathlib import Path
-from datetime import datetime
-from tabulate import tabulate
-from dag_optimizer.core.graph import DAG
-from dag_optimizer.core.optimizer import DAGOptimizer
-from dag_optimizer.models.operator import Operator, OptimizationMetric
-from dag_optimizer.utils.visualization import visualize_dag_with_cut_points
+import sys
+from typing import List, Tuple
 
-# 常量定义
-OUTPUT_DIR = Path("dag_visualizations")
+from models.bottleneck import BottleneckAnalyzer
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-def ensure_output_dir():
-    """确保可视化输出目录存在"""
-    OUTPUT_DIR.mkdir(exist_ok=True)
+from utils.config_loader import ConfigLoader
+from analysis.slicer import Slicer
+from models.node import Node
 
 
-def create_dag_from_ops(operators: List[Tuple[str, str]], edges: List[Tuple[int, int]]) -> DAG:
-    """通用DAG构建函数"""
-    dag = DAG()
-    for idx, (op_type, op_name) in enumerate(operators):
-        dag.add_operator(Operator(op_type, op_name), f"op{idx + 1}")
-    for from_idx, to_idx in edges:
-        dag.add_dependency(f"op{from_idx + 1}", f"op{to_idx + 1}")
-    return dag
+def print_all_edges(model: str, all_edges: List[Tuple[Node, Node, float]],
+                    selected_edges: List[Tuple[Node, Node, float]]) -> None:
+    """打印所有边的评分及选择结果"""
+    print(f"\n[详细评分] {model} 所有边的得分分析:")
+    print("=" * 80)
+    print("{:<5} {:<30} {:<10} {:<10} {:<10} {:<10}".format(
+        "Rank", "Edge", "Score", "Gain", "Cost", "Selected"))
+    print("-" * 80)
 
+    # 按得分排序所有边
+    sorted_edges = sorted(all_edges, key=lambda x: x[2], reverse=True)
 
-def create_dag1() -> DAG:
-    """4节点CNN结构"""
-    operators = [
-        ("Conv2d", "conv1"),
-        ("BatchNorm2d", "bn1"),
-        ("ReLU", "relu"),
-        ("Linear", "fc1")
-    ]
-    edges = [(0, 1), (1, 2), (2, 3)]
-    return create_dag_from_ops(operators, edges)
+    for i, (from_node, to_node, score) in enumerate(sorted_edges, 1):
+        is_selected = "★" if (from_node, to_node, score) in selected_edges else ""
+        print("{:<5} {:<15} → {:<10} {:<10.2f} {:<10.2f} {:<10.2f} {:<10}".format(
+            i,
+            f"{from_node.id}",
+            f"{to_node.id}",
+            score,
+            to_node.output_tensor_size * BottleneckAnalyzer.get_bottleneck_score(to_node.type),
+            from_node.output_tensor_size,
+            is_selected
+        ))
+    print("=" * 80)
 
-
-def create_dag2() -> DAG:
-    """4节点混合结构"""
-    operators = [
-        ("MaxPool2d", "pool1"),
-        ("FireModule", "fire1"),
-        ("AvgPool2d", "pool2"),
-        ("Linear", "fc1")
-    ]
-    edges = [(0, 1), (1, 2), (2, 3)]
-    return create_dag_from_ops(operators, edges)
-
-
-def create_dag3() -> DAG:
-    """4节点残差结构"""
-    operators = [
-        ("InvertedResidual", "inv1"),
-        ("AdaptiveAvgPool2d", "pool1"),
-        ("Conv2d", "conv1"),
-        ("BatchNorm2d", "bn1")
-    ]
-    edges = [(0, 1), (1, 2), (2, 3)]
-    return create_dag_from_ops(operators, edges)
-
-
-def analyze_dag(dag_creator, dag_num: int, metric: OptimizationMetric) -> Dict:
-    """执行单个DAG分析并生成可视化"""
-    ensure_output_dir()
-    dag = dag_creator()
-    optimizer = DAGOptimizer(dag.graph, metric)
-    result = optimizer.optimize()
-
-    # 生成带时间戳的文件名
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = OUTPUT_DIR / f"dag{dag_num}_{metric.value}_{timestamp}.png"
-
-    # 生成可视化
-    cut_points = [cp[0] for cp in result['optimal_cut_points']]
-    visualize_dag_with_cut_points(
-        dag.graph,
-        cut_points,
-        str(filename)
-    )
-
-    return {
-        **result,
-        'dag_name': f"DAG{dag_num}",
-        'metric': metric.value,
-        'dag': dag,
-        'visualization': filename.name
-    }
-
-
-def print_single_result(result: Dict):
-    """打印单个DAG的详细结果"""
-    print(f"\n{'=' * 50}")
-    print(f"=== {result['dag_name']} - {result['target_metric'].upper()} OPTIMIZATION ===")
-    print(f"Operators: {result['total_operators']} | Calculated k: {result['k']}")
-    print(f"Visualization: {OUTPUT_DIR}/{result['visualization']}")
-
-    # 关键路径信息
-    cp_ops = " → ".join(
-        f"{result['dag'].get_operator(n).op_type}({result['dag'].get_operator(n).name or ''})"
-        for n in result['original_critical_path']
-    )
-    print(f"\nCritical Path ({result['original_metric']:.1f}): {cp_ops}")
-
-    # 切片点分析
-    if result['optimal_cut_points']:
-        print("\nSELECTED CUT POINTS:")
-        headers = ["Rank", "Operator", "Name", "Benefit", "Cost", "Ratio"]
-        table = []
-        for i, (op_id, benefit, cost) in enumerate(result['optimal_cut_points'], 1):
-            op = result['dag'].get_operator(op_id)
-            table.append([
-                i, op.op_type, op.name or "unnamed",
-                f"{benefit:.1f}", f"{cost:.1f}", f"{benefit / cost:.1f}"
-            ])
-        print(tabulate(table, headers=headers, tablefmt="grid"))
-    else:
-        print("\nNo valid cut points found")
-
-
-def print_batch_summary(results: List[Dict]):
-    """打印批量分析汇总结果"""
-    print("\n\n" + "=" * 50)
-    print("=== BATCH ANALYSIS SUMMARY ===")
-    print(f"All visualizations saved to: {OUTPUT_DIR.resolve()}")
-
-    # 汇总表格
-    summary_headers = ["DAG", "Metric", "Best Cut", "Benefit", "Cost", "Ratio", "Visualization"]
-    summary_table = []
-
-    for res in results:
-        if res['optimal_cut_points']:
-            best = res['optimal_cut_points'][0]
-            op = res['dag'].get_operator(best[0])
-            summary_table.append([
-                res['dag_name'],
-                res['target_metric'],
-                f"{op.op_type}({op.name or ''})",
-                f"{best[1]:.1f}",
-                f"{best[2]:.1f}",
-                f"{best[1] / best[2]:.1f}",
-                res['visualization']
-            ])
-
-    print(tabulate(summary_table, headers=summary_headers, tablefmt="grid"))
+    # 打印选中的边详情
+    print("\n[最终选择] 推荐的切片边:")
+    for i, (from_node, to_node, score) in enumerate(selected_edges, 1):
+        print(f"{i}. {from_node.id} → {to_node.id}")
+        print(
+            f"   Score: {score:.2f} | Gain: {to_node.output_tensor_size * BottleneckAnalyzer.get_bottleneck_score(to_node.type):.2f}")
+        print(f"   From: {from_node.type}(size={from_node.output_tensor_size})")
+        print(f"   To: {to_node.type}(size={to_node.output_tensor_size})\n")
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="DAG Optimizer - Analyze and optimize computational graphs",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument("--mode",
-                        choices=["single", "batch"],
-                        default="batch",
-                        help="Analysis mode")
-    parser.add_argument("--dag",
-                        type=int,
-                        choices=[1, 2, 3],
-                        default=1,
-                        help="DAG selection (1-3) for single mode")
-    parser.add_argument("--metric",
-                        choices=["memory", "computation", "latency"],
-                        default="memory",
-                        help="Optimization target metric")
-    args = parser.parse_args()
+    try:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--model", required=True, choices=ConfigLoader.get_available_models())
+        parser.add_argument("--alpha", type=float, default=1.0)
+        args = parser.parse_args()
 
-    dag_creators = {
-        1: create_dag1,
-        2: create_dag2,
-        3: create_dag3
-    }
+        # 加载DAG
+        dag = ConfigLoader.load_dag_from_config(f"configs/{args.model}.json")
 
-    if args.mode == "single":
-        # 单DAG分析模式
-        print(f"\nAnalyzing DAG{args.dag} with {args.metric} optimization...")
-        result = analyze_dag(
-            dag_creators[args.dag],
-            args.dag,
-            OptimizationMetric(args.metric)
-        )
-        print_single_result(result)
-    else:
-        # 批量分析模式
-        print("=== BATCH ANALYSIS STARTED ===")
-        all_results = []
-        for dag_num, creator in dag_creators.items():
-            for metric in OptimizationMetric:
-                print(f"  Processing DAG{dag_num} - {metric.value}...")
-                all_results.append(analyze_dag(creator, dag_num, metric))
+        # 计算所有边得分
+        slicer = Slicer(dag, alpha=args.alpha)
+        all_edges = slicer.find_potential_slice_edges()  # 获取所有边
+        selected_edges = slicer.select_top_k_slice_edges()  # 选择top-k
 
-        print_batch_summary(all_results)
+        # 打印结果
+        print_all_edges(args.model, all_edges, selected_edges)
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

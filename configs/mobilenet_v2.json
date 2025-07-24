@@ -1,0 +1,19 @@
+{
+  "name": "mobilenet_v2",
+  "description": "MobileNetV2 flops bottleneck at features.13.conv.1.0",
+  "nodes": {
+    "features_13.comv6.0": {"type": "Conv2d", "output_size": 130},
+    "features_13.comv.0.1": {"type": "BatchNorm2d", "output_size": 125},
+    "features_13.comv.1.0": {"type": "Conv2d", "output_size": 140},
+    "features_13.comv.1.1": {"type": "BatchNorm2d", "output_size": 140},
+    "features_13.comv.2": {"type": "Conv2d", "output_size": 135},
+    "features_13.comv.3": {"type": "BatchNorm2d", "output_size": 135}
+  },
+  "edges": [
+    {"from": "features_13.comv6.0", "to": "features_13.comv.0.1"},
+    {"from": "features_13.comv.0.1", "to": "features_13.comv.1.0"},
+    {"from": "features_13.comv.1.0", "to": "features_13.comv.1.1"},
+    {"from": "features_13.comv.1.1", "to": "features_13.comv.2"},
+    {"from": "features_13.comv.2", "to": "features_13.comv.3"}
+  ]
+}

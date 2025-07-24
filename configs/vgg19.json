@@ -1,0 +1,19 @@
+{
+  "name": "vgg19",
+  "description": "VGG19 memory bottleneck at features.2",
+  "nodes": {
+    "features.5": {"type": "Conv2d", "output_size": 150},
+    "features.3": {"type": "ReLU", "output_size": 100},
+    "features.4": {"type": "MaxPool2d", "output_size": 80},
+    "features.2": {"type": "Conv2d", "output_size": 100},
+    "features.1": {"type": "Conv2d", "output_size": 120},
+    "features.0": {"type": "ReLU", "output_size": 120}
+  },
+  "edges": [
+    {"from": "features.2", "to": "features.3"},
+    {"from": "features.3", "to": "features.4"},
+    {"from": "features.4", "to": "features.5"},
+    {"from": "features.1", "to": "features.0"},
+    {"from": "features.0", "to": "features.5"}
+  ]
+}

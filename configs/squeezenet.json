@@ -1,0 +1,19 @@
+{
+  "name": "squeezenet",
+  "description": "SqueezeNet flops bottleneck at features.10 expand3x3",
+  "nodes": {
+    "features.10_squeeze_activation": {"type": "ReLU", "output_size": 90},
+    "features.10_expand1x1_activation": {"type": "ReLU", "output_size": 100},
+    "features.10_expand3x3": {"type": "Conv2d", "output_size": 120},
+    "features.10_expand3x3_activation": {"type": "ReLU", "output_size": 120},
+    "features.11": {"type": "Conv2d", "output_size": 110},
+    "features.12_squeeze": {"type": "Conv2d", "output_size": 95}
+  },
+  "edges": [
+    {"from": "features.10_squeeze_activation", "to": "features.10_expand1x1_activation"},
+    {"from": "features.10_squeeze_activation", "to": "features.10_expand3x3"},
+    {"from": "features.10_expand3x3", "to": "features.10_expand3x3_activation"},
+    {"from": "features.10_expand3x3_activation", "to": "features.11"},
+    {"from": "features.11", "to": "features.12_squeeze"}
+  ]
+}
