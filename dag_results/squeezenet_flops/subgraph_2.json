@@ -1,0 +1,21 @@
+{
+  "nodes": {
+    "features.10_expand3x3": {
+      "type": "Conv2d",
+      "size": 120
+    },
+    "features.10_expand3x3_activation": {
+      "type": "ReLU",
+      "size": 120
+    }
+  },
+  "edges": [
+    {
+      "from": "features.10_expand3x3",
+      "to": "features.10_expand3x3_activation",
+      "from_type": "Conv2d",
+      "to_type": "ReLU",
+      "data_flow": "120→120"
+    }
+  ]
+}

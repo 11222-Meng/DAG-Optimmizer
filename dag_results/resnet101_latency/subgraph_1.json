@@ -1,0 +1,21 @@
+{
+  "nodes": {
+    "layer4.0.downsample.0": {
+      "type": "Conv2d",
+      "size": 210
+    },
+    "layer4.0.conv4": {
+      "type": "Conv2d",
+      "size": 200
+    }
+  },
+  "edges": [
+    {
+      "from": "layer4.0.downsample.0",
+      "to": "layer4.0.conv4",
+      "from_type": "Conv2d",
+      "to_type": "Conv2d",
+      "data_flow": "210→200"
+    }
+  ]
+}

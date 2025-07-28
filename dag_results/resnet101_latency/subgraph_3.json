@@ -1,0 +1,21 @@
+{
+  "nodes": {
+    "layer4.0.netu": {
+      "type": "BatchNorm2d",
+      "size": 190
+    },
+    "layer4.0.conv3": {
+      "type": "Conv2d",
+      "size": 220
+    }
+  },
+  "edges": [
+    {
+      "from": "layer4.0.conv3",
+      "to": "layer4.0.netu",
+      "from_type": "Conv2d",
+      "to_type": "BatchNorm2d",
+      "data_flow": "220→190"
+    }
+  ]
+}

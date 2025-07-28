@@ -1,6 +1,10 @@
 {
   "name": "vgg19",
   "description": "VGG19 memory bottleneck at features.2",
+  "bottleneck": {
+        "type": "memory",
+        "location": "features.2"
+    },
   "nodes": {
     "features.5": {"type": "Conv2d", "output_size": 150},
     "features.3": {"type": "ReLU", "output_size": 100},

@@ -1,0 +1,9 @@
+{
+  "nodes": {
+    "layer4.0.bn1": {
+      "type": "BatchNorm2d",
+      "size": 180
+    }
+  },
+  "edges": []
+}

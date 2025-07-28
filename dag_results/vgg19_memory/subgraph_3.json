@@ -1,0 +1,21 @@
+{
+  "nodes": {
+    "features.0": {
+      "type": "ReLU",
+      "size": 120
+    },
+    "features.1": {
+      "type": "Conv2d",
+      "size": 120
+    }
+  },
+  "edges": [
+    {
+      "from": "features.1",
+      "to": "features.0",
+      "from_type": "Conv2d",
+      "to_type": "ReLU",
+      "data_flow": "120→120"
+    }
+  ]
+}

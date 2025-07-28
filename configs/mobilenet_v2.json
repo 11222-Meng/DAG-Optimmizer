@@ -1,6 +1,10 @@
 {
   "name": "mobilenet_v2",
   "description": "MobileNetV2 flops bottleneck at features.13.conv.1.0",
+  "bottleneck": {
+        "type": "flops",
+        "location": "features.13.conv.1.0"
+    },
   "nodes": {
     "features_13.comv6.0": {"type": "Conv2d", "output_size": 130},
     "features_13.comv.0.1": {"type": "BatchNorm2d", "output_size": 125},

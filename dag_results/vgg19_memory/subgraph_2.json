@@ -1,0 +1,32 @@
+{
+  "nodes": {
+    "features.3": {
+      "type": "ReLU",
+      "size": 100
+    },
+    "features.4": {
+      "type": "MaxPool2d",
+      "size": 80
+    },
+    "features.2": {
+      "type": "Conv2d",
+      "size": 100
+    }
+  },
+  "edges": [
+    {
+      "from": "features.3",
+      "to": "features.4",
+      "from_type": "ReLU",
+      "to_type": "MaxPool2d",
+      "data_flow": "100→80"
+    },
+    {
+      "from": "features.2",
+      "to": "features.3",
+      "from_type": "Conv2d",
+      "to_type": "ReLU",
+      "data_flow": "100→100"
+    }
+  ]
+}

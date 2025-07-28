@@ -1,0 +1,21 @@
+{
+  "nodes": {
+    "features.10_expand1x1_activation": {
+      "type": "ReLU",
+      "size": 100
+    },
+    "features.10_squeeze_activation": {
+      "type": "ReLU",
+      "size": 90
+    }
+  },
+  "edges": [
+    {
+      "from": "features.10_squeeze_activation",
+      "to": "features.10_expand1x1_activation",
+      "from_type": "ReLU",
+      "to_type": "ReLU",
+      "data_flow": "90→100"
+    }
+  ]
+}

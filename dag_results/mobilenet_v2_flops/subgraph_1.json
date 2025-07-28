@@ -1,0 +1,21 @@
+{
+  "nodes": {
+    "features_13.comv6.0": {
+      "type": "Conv2d",
+      "size": 130
+    },
+    "features_13.comv.0.1": {
+      "type": "BatchNorm2d",
+      "size": 125
+    }
+  },
+  "edges": [
+    {
+      "from": "features_13.comv6.0",
+      "to": "features_13.comv.0.1",
+      "from_type": "Conv2d",
+      "to_type": "BatchNorm2d",
+      "data_flow": "130→125"
+    }
+  ]
+}

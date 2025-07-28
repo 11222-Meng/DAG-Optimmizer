@@ -1,6 +1,10 @@
 {
   "name": "resnet101",
   "description": "ResNet101 latency bottleneck at layer4.0.conv3",
+  "bottleneck": {
+        "type": "latency",
+        "location": "layer4.0.conv3"
+    },
   "nodes": {
     "layer4.0.conv4": {"type": "Conv2d", "output_size": 200},
     "layer4.0.bn1": {"type": "BatchNorm2d", "output_size": 180},

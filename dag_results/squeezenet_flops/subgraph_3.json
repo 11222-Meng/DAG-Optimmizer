@@ -1,0 +1,21 @@
+{
+  "nodes": {
+    "features.11": {
+      "type": "Conv2d",
+      "size": 110
+    },
+    "features.12_squeeze": {
+      "type": "Conv2d",
+      "size": 95
+    }
+  },
+  "edges": [
+    {
+      "from": "features.11",
+      "to": "features.12_squeeze",
+      "from_type": "Conv2d",
+      "to_type": "Conv2d",
+      "data_flow": "110→95"
+    }
+  ]
+}

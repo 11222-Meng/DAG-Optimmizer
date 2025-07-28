@@ -1,0 +1,9 @@
+{
+  "nodes": {
+    "features.5": {
+      "type": "Conv2d",
+      "size": 150
+    }
+  },
+  "edges": []
+}
